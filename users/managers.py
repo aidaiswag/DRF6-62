@@ -12,6 +12,9 @@ class CustomUserManager(BaseUserManager):
         return user
     
     def create_superuser(self, email, password, **extra_fields):
+        phone_number = extra_fields.get("phone_number")
+        if not phone_number:
+            raise ValueError("Superuser must have a phone number.")
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
