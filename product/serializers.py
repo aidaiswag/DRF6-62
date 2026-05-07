@@ -50,6 +50,7 @@ class ProductValidateSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_blank=True)
     price = serializers.FloatField(min_value=0.01)
     category = serializers.IntegerField(min_value=1)
+    owner = serializers.CharField(required=False)
 
     def validate_category(self, category_id):
         try:

@@ -6,6 +6,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
+from common.permissions import IsModerator
 
 from .models import Category, Product, Review
 from .serializers import (
@@ -68,6 +69,13 @@ class ProductListCreateAPIView(ListCreateAPIView):
     queryset = Product.objects.select_related('category').all()
     serializer_class = ProductSerializer
     pagination_class = CustomPagination
+    permission_classes = [IsModerator]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:
+            return Product.objects.all()
+        return Product.objects.filter(owner=user)
 
     def post(self, request, *args, **kwargs):
         serializer = ProductValidateSerializer(data=request.data)
@@ -79,21 +87,28 @@ class ProductListCreateAPIView(ListCreateAPIView):
         price = serializer.validated_data.get('price')
         category = serializer.validated_data.get('category')
 
+
+
         # Create product
         product = Product.objects.create(
             title=title,
             description=description,
             price=price,
-            category=category
+            category=category,
+            owner=request.user
         )
 
         return Response(data=ProductSerializer(product).data,
                         status=status.HTTP_201_CREATED)
+    
+
+
 
 
 class ProductDetailAPIView(RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.select_related('category').all()
     serializer_class = ProductSerializer
+    permission_classes = [IsModerator]
     lookup_field = 'id'
 
     def put(self, request, *args, **kwargs):
@@ -105,6 +120,7 @@ class ProductDetailAPIView(RetrieveUpdateDestroyAPIView):
         product.description = serializer.validated_data.get('description')
         product.price = serializer.validated_data.get('price')
         product.category = serializer.validated_data.get('category')
+        product.owner = request.user
         product.save()
 
         return Response(data=ProductSerializer(product).data)
