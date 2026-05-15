@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'users',
     'rest_framework.authtoken',
     'drf_yasg',
-    'rest_framework_simplejwt'
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -105,6 +106,12 @@ SWAGGER_SETTINGS = {
             'name': 'Authorization',
             'in': 'header',
             'description': 'Token<token>'
+        },
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Bearer <token>'
         }
     }
 }
@@ -173,3 +180,17 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "users.CustomUser"
+
+
+
+
+from datetime import timedelta
+...
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,   
+}

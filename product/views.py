@@ -7,7 +7,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from common.permissions import IsModerator
-
+from common.validators import validate_age
 from .models import Category, Product, Review
 from .serializers import (
     CategorySerializer,
@@ -69,7 +69,7 @@ class ProductListCreateAPIView(ListCreateAPIView):
     queryset = Product.objects.select_related('category').all()
     serializer_class = ProductSerializer
     pagination_class = CustomPagination
-    permission_classes = [IsModerator]
+    # permission_classes = [IsModerator]
 
     def get_queryset(self):
         user = self.request.user
@@ -78,6 +78,10 @@ class ProductListCreateAPIView(ListCreateAPIView):
         return Product.objects.filter(owner=user)
 
     def post(self, request, *args, **kwargs):
+        email = request.auth.get("email")
+        birthdate = getattr(request.user, "birthdate", None)
+        validate_age(birthdate)
+        print("email", email)
         serializer = ProductValidateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -95,7 +99,7 @@ class ProductListCreateAPIView(ListCreateAPIView):
             description=description,
             price=price,
             category=category,
-            owner=request.user
+            owner_id=request.auth.get("user_id")
         )
 
         return Response(data=ProductSerializer(product).data,

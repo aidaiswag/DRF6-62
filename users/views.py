@@ -10,11 +10,16 @@ from rest_framework.generics import CreateAPIView
 from .serializers import (
     RegisterValidateSerializer,
     AuthValidateSerializer,
-    ConfirmationSerializer
+    ConfirmationSerializer,
+    CustomObtainPairSerializer
 )
 from .models import ConfirmationCode, CustomUser
 import random
 import string
+from rest_framework_simplejwt.views import TokenObtainPairView
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomObtainPairSerializer
 
 
 class AuthorizationAPIView(CreateAPIView):
@@ -51,12 +56,14 @@ class RegistrationAPIView(CreateAPIView):
 
         email = serializer.validated_data['email']
         password = serializer.validated_data['password']
+        birthdate = serializer.validated_data['birthdate']
 
         # Use transaction to ensure data consistency
         with transaction.atomic():
             user = CustomUser.objects.create_user(
                 email=email,
                 password=password,
+                birthdate=birthdate,
                 is_active=False
             )
 
